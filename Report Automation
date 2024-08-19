@@ -1,0 +1,106 @@
+Function IsInArray(stringToBeFound As String, arr As Variant) As Boolean
+    IsInArray = (UBound(Filter(arr, stringToBeFound)) > -1)
+End Function
+
+Sub CopyDataFromAnotherFile()
+    Dim wsDestLeadHub As Worksheet
+    Dim wsDestC1st As Worksheet
+    Dim wsSource As Worksheet
+    Dim wsSourceC1st As Worksheet
+    Dim lastRowSource As Long
+    Dim lastRowSourceC1st As Long
+    Dim rngSource As Range
+    Dim rngSourceC1st As Range
+    Dim destRow As Long
+    Dim sourceWB As Workbook
+    Dim sourceC1st As Workbook
+
+    ' Define the destination sheet "Lead Hub Extraction"
+    Set wsDestLeadHub = ThisWorkbook.Sheets("Lead Hub Extraction")
+    
+    ' Open the source file
+    Set sourceWB = Workbooks.Open("C:\Users\gabrumi\Desktop\Lancia IT Report Extraction from Lead Hub.xlsx")
+    
+    ' Define the source sheet in the source file
+    Set wsSource = sourceWB.Sheets("Sheet1")
+    
+    ' Find the last row with data in column A of the source sheet
+    lastRowSource = wsSource.Cells(wsSource.Rows.Count, "A").End(xlUp).Row
+    
+    ' Define the range to copy in the source sheet
+    Set rngSource = wsSource.Range("A3:O" & lastRowSource)
+    
+    ' Determine the first available row in the destination sheet
+    destRow = wsDestLeadHub.Cells(wsDestLeadHub.Rows.Count, "A").End(xlUp).Row + 1
+   
+    ' Copy the values to the destination sheet starting from cell A2
+    rngSource.Copy
+    wsDestLeadHub.Range("A2").PasteSpecial Paste:=xlPasteValues
+    
+    ' Close the source file without saving changes
+    sourceWB.Close SaveChanges:=False
+    
+    Application.Calculation = xlCalculationAutomatic
+    Application.CalculateFull
+
+    ' Define the destination sheet "Lead Hub Extraction"
+    Set wsDestC1st = ThisWorkbook.Sheets("db xf - DISTRIBUTED")
+    
+    ' Clear previous data in the destination sheet
+    wsDestC1st.Rows("2:" & wsDestC1st.Rows.Count).Clear
+    
+    ' Open the source file
+    Set sourceC1st = Workbooks.Open("C:\Users\gabrumi\Desktop\Lancia IT Report Extraction from C1st.xlsx")
+    
+    ' Define the source sheet in the source file
+    Set wsSourceC1st = sourceC1st.Sheets("Copy_of_Leads_Network_Vision1")
+    
+    ' Find the last row with data in column A of the source sheet
+    lastRowSourceC1st = wsSourceC1st.Cells(wsSourceC1st.Rows.Count, "A").End(xlUp).Row
+    
+    ' Define the range to copy in the source sheet
+    Set rngSourceC1st = wsSourceC1st.Range("A2:CQ" & lastRowSourceC1st)
+
+    ' Copy the values to the destination sheet starting from cell A2
+    rngSourceC1st.Copy
+    wsDestC1st.Cells(2, 1).PasteSpecial Paste:=xlPasteValues
+    
+    ' Close the source file without saving changes
+    sourceC1st.Close SaveChanges:=False
+    
+    Application.Calculation = xlCalculationAutomatic
+    Application.CalculateFull
+
+    Dim col As Long
+    Dim labels As Variant
+    Dim cell As Range
+    
+    ' Define the destination sheet "db xf - DISTRIBUTED"
+    Set wsDestC1st = ThisWorkbook.Sheets("db xf - DISTRIBUTED")
+    
+    ' Define the labels to search for in the columns
+    labels = Array("First Name", "Last Name", "Email", "Landline Telephone", "Mobile Telephone", "Stellantis Account ID", "Local Account ID", _
+    "Sent Date", "CEC Name", "CEC Treatment Time (hours)", "CEC Treatment Time Respect", "ACCLead.CEC", "Actual Treatment Date (Year-Month-Day)", "FxHoursTreatment", _
+    "Freespee Treatment Date", "Freespee On Time", "Freespee PIN", "Verified nbr attempts", "Contacted", "Contacted on time", "Verified conversation time", "Lead Label", _
+    "Lead Type", "CentralLocal_lead", "Lead Source", "Lead Code", "LEVEL0", "Nature3", "Activity", "Status", "Lead Qualification Result", "CECLeadQualificationResultwNull", _
+    "Country", "Calculated POS", "DR_All", "ZN_ALL", "Legal Entity", "Dealer Code", "Dealer Name", "Outlet Code", "Outlet Name", "Contract Code", "Contract Name", _
+    "POS Code", "POS Name", "DestinationGeographicalCode", "CalculatedPOSCitywNull", "Site Type", "Salesman", "ProductCustomerInterestWithNull", "LCDV Interest", _
+    "Lead Model", "Lead Energy", "Own Vehicle", "Click Id", "GACLIENTID", "GATRACKID", "GAUSERID", "Campaign Name", "Converted", "Converted Opportunity ID", _
+    "Stage Name", "Opportunity Owner with Quotes", "QuoteOffer.NbQuote", "Final_3M_KPI", "Nb of orders", "Order Number", "Car Number", "VIN", "Order Id", "Order Date", _
+    "Opp,LCDV16wNull 3M", "Family Code", "Order Family", "Order Energy", "Order PC/LCV", "Order Use Type", "Single Brand Email Optin", "Single Brand Post Optin", _
+    "Single Brand Phone Optin", "Single Brand SMS Optin", "Disclaimer Id", "Profiling", "Multibrand Email Optin", "Multibrand Post Optin", "Multibrand Phone Optin", _
+    "Multibrand SMS Optin", "3rd Parties Email Optin", "3rd Parties Post Optin", "3rd Parties Phone Optin", "3rd Parties SMS Optin", "empty", "empty4", "empty5", "empty6")
+
+    ' Scan the columns to search for the labels and delete the corresponding columns
+    For col = wsDestC1st.Cells(1, wsDestC1st.Columns.Count).End(xlToLeft).Column To 1 Step -1
+        For Each cell In wsDestC1st.Columns(col).Cells
+            If Not IsEmpty(cell.Value) Then
+                If IsInArray(cell.Value, labels) Then
+                    wsDestC1st.Columns(col).Delete
+                    Exit For
+                End If
+            End If
+        Next cell
+    Next col
+
+End Sub
